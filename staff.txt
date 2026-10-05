@@ -1,0 +1,379 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.Scanner;
+
+public class HospitalManagementSystem
+{
+    static Scanner sc = new Scanner(System.in);
+
+    // ---------- 4. STAFF ----------
+    public static void staffModule()
+    {
+        int choice;
+
+        do
+        {
+            System.out.println("\n==============================");
+            System.out.println("        STAFF MANAGEMENT");
+            System.out.println("==============================");
+            System.out.println("1. Add Staff");
+            System.out.println("2. View Staff");
+            System.out.println("3. Search Staff");
+            System.out.println("4. Update Staff");
+            System.out.println("5. Delete Staff");
+            System.out.println("6. Back");
+            System.out.print("Enter Choice: ");
+
+            choice = Integer.parseInt(sc.nextLine());
+
+            switch(choice)
+            {
+                case 1:
+                    addStaff();
+                    break;
+
+                case 2:
+                    viewStaff();
+                    break;
+
+                case 3:
+                    searchStaff();
+                    break;
+
+                case 4:
+                    updateStaff();
+                    break;
+
+                case 5:
+                    deleteStaff();
+                    break;
+
+                case 6:
+                    System.out.println("Returning to Main Menu...");
+                    break;
+
+                default:
+                    System.out.println("Invalid Choice");
+            }
+        }
+        while(choice != 6);
+    }
+
+
+    // ---------- ADD STAFF ----------
+    static void addStaff()
+    {
+        try
+        {
+            int no = nextNumber("staff.txt");
+
+            System.out.println("Staff Number: " + no);
+
+            System.out.print("Enter Staff Name: ");
+            String name = sc.nextLine();
+
+            System.out.print("Enter Age: ");
+            String age = sc.nextLine();
+
+            System.out.print("Enter Gender: ");
+            String gender = sc.nextLine();
+
+            System.out.print("Enter Role: ");
+            String role = sc.nextLine();
+
+            System.out.print("Enter Phone: ");
+            String phone = sc.nextLine();
+
+            FileOutputStream fos =
+                    new FileOutputStream("staff.txt", true);
+
+            fos.write(
+                (no + "|" + name + "|" + age + "|" +
+                 gender + "|" + role + "|" + phone + "\n")
+                 .getBytes()
+            );
+
+            fos.close();
+
+            System.out.println("Staff added successfully.");
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+    // ---------- VIEW STAFF ----------
+    static void viewStaff()
+    {
+        String data = readFile("staff.txt");
+
+        if(data.trim().equals(""))
+        {
+            System.out.println("No staff data found.");
+            return;
+        }
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] s = r.split("\\|");
+
+            System.out.println(
+                "Staff " + s[0] +
+                " | " + s[1] +
+                " | Age: " + s[2] +
+                " | Gender: " + s[3] +
+                " | Role: " + s[4] +
+                " | Phone: " + s[5]
+            );
+        }
+    }
+
+
+    // ---------- SEARCH STAFF ----------
+    static void searchStaff()
+    {
+        System.out.print("Enter Staff Number: ");
+        String no = sc.nextLine();
+
+        String[] s = findRecord("staff.txt", no);
+
+        if(s == null)
+        {
+            System.out.println("Staff not found.");
+            return;
+        }
+
+        System.out.println(
+            "Staff " + s[0] +
+            " | Name: " + s[1] +
+            " | Age: " + s[2] +
+            " | Gender: " + s[3] +
+            " | Role: " + s[4] +
+            " | Phone: " + s[5]
+        );
+    }
+
+
+    // ---------- UPDATE STAFF ----------
+    static void updateStaff()
+    {
+        System.out.print("Enter Staff Number: ");
+        String no = sc.nextLine();
+
+        String data = readFile("staff.txt");
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] s = r.split("\\|");
+
+            if(s[0].equals(no))
+            {
+                System.out.print("Enter New Name: ");
+                String name = sc.nextLine();
+
+                System.out.print("Enter New Age: ");
+                String age = sc.nextLine();
+
+                System.out.print("Enter New Gender: ");
+                String gender = sc.nextLine();
+
+                System.out.print("Enter New Role: ");
+                String role = sc.nextLine();
+
+                System.out.print("Enter New Phone: ");
+                String phone = sc.nextLine();
+
+                newData += no + "|" + name + "|" + age + "|" +
+                           gender + "|" + role + "|" + phone + "\n";
+
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("staff.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        System.out.println(
+            found ?
+            "Staff updated successfully." :
+            "Staff not found."
+        );
+    }
+
+
+    // ---------- DELETE STAFF ----------
+    static void deleteStaff()
+    {
+        System.out.print("Enter Staff Number: ");
+        String no = sc.nextLine();
+
+        String data = readFile("staff.txt");
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] s = r.split("\\|");
+
+            if(s[0].equals(no))
+            {
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("staff.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        System.out.println(
+            found ?
+            "Staff deleted successfully." :
+            "Staff not found."
+        );
+    }
+
+
+    // ---------- MAIN ----------
+    public static void main(String[] args)
+    {
+        staffModule();
+    }
+
+
+    // ---------- FILE METHODS ----------
+    static String readFile(String fileName)
+    {
+        String data = "";
+
+        try
+        {
+            File file = new File(fileName);
+
+            if(!file.exists())
+                return "";
+
+            FileInputStream fis =
+                    new FileInputStream(file);
+
+            int ch;
+
+            while((ch = fis.read()) != -1)
+            {
+                data += (char) ch;
+            }
+
+            fis.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return data;
+    }
+
+
+    static void writeFile(String fileName, String data)
+    {
+        try
+        {
+            FileOutputStream fos =
+                    new FileOutputStream(fileName);
+
+            fos.write(data.getBytes());
+
+            fos.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+    static int nextNumber(String fileName)
+    {
+        String data = readFile(fileName);
+
+        if(data.trim().equals(""))
+            return 1;
+
+        int max = 0;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] s = r.split("\\|");
+
+            try
+            {
+                int n = Integer.parseInt(s[0]);
+
+                if(n > max)
+                    max = n;
+            }
+            catch(Exception e)
+            {
+                // Ignore invalid record
+            }
+        }
+
+        return max + 1;
+    }
+
+
+    static String[] findRecord(String fileName, String number)
+    {
+        String data = readFile(fileName);
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] s = r.split("\\|");
+
+            if(s[0].equals(number))
+                return s;
+        }
+
+        return null;
+    }
+}
