@@ -1,0 +1,407 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.Scanner;
+
+public class HospitalManagementSystem
+{
+    static Scanner sc = new Scanner(System.in);
+
+    // ---------- 6. APPOINTMENT ----------
+    public static void appointmentModule()
+    {
+        int choice;
+
+        do
+        {
+            System.out.println("\n==============================");
+            System.out.println("      APPOINTMENT MANAGEMENT");
+            System.out.println("==============================");
+            System.out.println("1. Add Appointment");
+            System.out.println("2. View Appointments");
+            System.out.println("3. Search Appointment");
+            System.out.println("4. Update Appointment");
+            System.out.println("5. Delete Appointment");
+            System.out.println("6. Back");
+
+            System.out.print("Enter Choice: ");
+            choice = Integer.parseInt(sc.nextLine());
+
+            switch(choice)
+            {
+                case 1:
+                    addAppointment();
+                    break;
+
+                case 2:
+                    viewAppointments();
+                    break;
+
+                case 3:
+                    searchAppointment();
+                    break;
+
+                case 4:
+                    updateAppointment();
+                    break;
+
+                case 5:
+                    deleteAppointment();
+                    break;
+
+                case 6:
+                    System.out.println("Returning to Main Menu...");
+                    break;
+
+                default:
+                    System.out.println("Invalid Choice");
+            }
+
+        }
+        while(choice != 6);
+    }
+
+
+    // ---------- ADD APPOINTMENT ----------
+    static void addAppointment()
+    {
+        try
+        {
+            int no = nextNumber("appointments.txt");
+
+            System.out.println("Appointment Number: " + no);
+
+            System.out.print("Enter Patient Number: ");
+            String pno = sc.nextLine();
+
+            String[] p = findRecord("patients.txt", pno);
+
+            if(p == null)
+            {
+                System.out.println("Patient not found.");
+                return;
+            }
+
+            System.out.print("Enter Doctor Number: ");
+            String dno = sc.nextLine();
+
+            String[] d = findRecord("doctors.txt", dno);
+
+            if(d == null)
+            {
+                System.out.println("Doctor not found.");
+                return;
+            }
+
+            System.out.print("Enter Appointment Date: ");
+            String date = sc.nextLine();
+
+            System.out.print("Enter Appointment Time: ");
+            String time = sc.nextLine();
+
+            FileOutputStream fos =
+                    new FileOutputStream("appointments.txt", true);
+
+            fos.write(
+                (no + "|" + pno + "|" + p[1] + "|" +
+                 dno + "|" + d[1] + "|" + date + "|" +
+                 time + "\n").getBytes()
+            );
+
+            fos.close();
+
+            System.out.println("Appointment added successfully.");
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+    // ---------- VIEW APPOINTMENTS ----------
+    static void viewAppointments()
+    {
+        String data = readFile("appointments.txt");
+
+        if(data.trim().equals(""))
+        {
+            System.out.println("No appointment data found.");
+            return;
+        }
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] a = r.split("\\|");
+
+            System.out.println(
+                "Appointment " + a[0] +
+                " | Patient: " + a[2] +
+                " | Doctor: " + a[4] +
+                " | Date: " + a[5] +
+                " | Time: " + a[6]
+            );
+        }
+    }
+
+
+    // ---------- SEARCH APPOINTMENT ----------
+    static void searchAppointment()
+    {
+        System.out.print("Enter Appointment Number: ");
+        String no = sc.nextLine();
+
+        String[] a = findRecord("appointments.txt", no);
+
+        if(a == null)
+        {
+            System.out.println("Appointment not found.");
+            return;
+        }
+
+        System.out.println("\nAppointment " + a[0]);
+        System.out.println("Patient Name : " + a[2]);
+        System.out.println("Doctor Name  : " + a[4]);
+        System.out.println("Date         : " + a[5]);
+        System.out.println("Time         : " + a[6]);
+    }
+
+
+    // ---------- UPDATE APPOINTMENT ----------
+    static void updateAppointment()
+    {
+        System.out.print("Enter Appointment Number: ");
+        String no = sc.nextLine();
+
+        String data = readFile("appointments.txt");
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] a = r.split("\\|");
+
+            if(a[0].equals(no))
+            {
+                System.out.print("Enter New Patient Number: ");
+                String pno = sc.nextLine();
+
+                String[] p = findRecord("patients.txt", pno);
+
+                if(p == null)
+                {
+                    System.out.println("Patient not found.");
+                    return;
+                }
+
+                System.out.print("Enter New Doctor Number: ");
+                String dno = sc.nextLine();
+
+                String[] d = findRecord("doctors.txt", dno);
+
+                if(d == null)
+                {
+                    System.out.println("Doctor not found.");
+                    return;
+                }
+
+                System.out.print("Enter New Date: ");
+                String date = sc.nextLine();
+
+                System.out.print("Enter New Time: ");
+                String time = sc.nextLine();
+
+                newData +=
+                    no + "|" + pno + "|" + p[1] + "|" +
+                    dno + "|" + d[1] + "|" + date + "|" +
+                    time + "\n";
+
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("appointments.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        System.out.println(
+            found ?
+            "Appointment updated successfully." :
+            "Appointment not found."
+        );
+    }
+
+
+    // ---------- DELETE APPOINTMENT ----------
+    static void deleteAppointment()
+    {
+        System.out.print("Enter Appointment Number: ");
+        String no = sc.nextLine();
+
+        String data = readFile("appointments.txt");
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] a = r.split("\\|");
+
+            if(a[0].equals(no))
+            {
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("appointments.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        System.out.println(
+            found ?
+            "Appointment deleted successfully." :
+            "Appointment not found."
+        );
+    }
+
+
+    // ---------- READ FILE ----------
+    static String readFile(String fileName)
+    {
+        String data = "";
+
+        try
+        {
+            File file = new File(fileName);
+
+            if(!file.exists())
+                return "";
+
+            FileInputStream fis =
+                    new FileInputStream(file);
+
+            int ch;
+
+            while((ch = fis.read()) != -1)
+            {
+                data += (char) ch;
+            }
+
+            fis.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return data;
+    }
+
+
+    // ---------- WRITE FILE ----------
+    static void writeFile(String fileName, String data)
+    {
+        try
+        {
+            FileOutputStream fos =
+                    new FileOutputStream(fileName);
+
+            fos.write(data.getBytes());
+
+            fos.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+    // ---------- NEXT NUMBER ----------
+    static int nextNumber(String fileName)
+    {
+        String data = readFile(fileName);
+
+        if(data.trim().equals(""))
+            return 1;
+
+        int max = 0;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] a = r.split("\\|");
+
+            try
+            {
+                int n = Integer.parseInt(a[0]);
+
+                if(n > max)
+                    max = n;
+            }
+            catch(Exception e)
+            {
+                // Ignore invalid records
+            }
+        }
+
+        return max + 1;
+    }
+
+
+    // ---------- FIND RECORD ----------
+    static String[] findRecord(String fileName, String number)
+    {
+        String data = readFile(fileName);
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] a = r.split("\\|");
+
+            if(a[0].equals(number))
+                return a;
+        }
+
+        return null;
+    }
+
+
+    // ---------- MAIN ----------
+    public static void main(String[] args)
+    {
+        appointmentModule();
+    }
+}
