@@ -1,0 +1,276 @@
+import java.io.FileOutputStream;
+import java.util.Scanner;
+// ---------- 3. DOCTOR ----------
+public static void doctorModule()
+{
+    int choice;
+
+    do
+    {
+        System.out.println("\n==============================");
+        System.out.println("       DOCTOR MANAGEMENT");
+        System.out.println("==============================");
+        System.out.println("1. Add Doctor");
+        System.out.println("2. View Doctors");
+        System.out.println("3. Search Doctor");
+        System.out.println("4. Update Doctor");
+        System.out.println("5. Delete Doctor");
+        System.out.println("6. Back");
+        System.out.print("Enter Choice: ");
+
+        choice = Integer.parseInt(sc.nextLine());
+
+        switch(choice)
+        {
+            case 1:
+                addDoctor();
+                break;
+
+            case 2:
+                viewDoctors();
+                break;
+
+            case 3:
+                searchDoctor();
+                break;
+
+            case 4:
+                updateDoctor();
+                break;
+
+            case 5:
+                deleteDoctor();
+                break;
+
+            case 6:
+                break;
+
+            default:
+                System.out.println("Invalid Choice");
+        }
+    }
+    while(choice != 6);
+}
+
+
+// ---------- ADD DOCTOR ----------
+static void addDoctor()
+{
+    try
+    {
+        int no = nextNumber("doctors.txt");
+
+        System.out.println("Doctor Number: " + no);
+
+        System.out.print("Enter Doctor Name: ");
+        String name = sc.nextLine();
+
+        System.out.print("Enter Age: ");
+        String age = sc.nextLine();
+
+        System.out.print("Enter Gender: ");
+        String gender = sc.nextLine();
+
+        System.out.print("Enter Specialization: ");
+        String spec = sc.nextLine();
+
+        System.out.print("Enter Phone: ");
+        String phone = sc.nextLine();
+
+        if(phone.length() != 10)
+        {
+            System.out.println("Enter 10 digit phone number.");
+            return;
+        }
+
+        FileOutputStream fos =
+            new FileOutputStream("doctors.txt", true);
+
+        fos.write(
+            (no + "|" + name + "|" + age + "|" +
+             gender + "|" + spec + "|" + phone + "\n").getBytes()
+        );
+
+        fos.close();
+
+        System.out.println("Doctor added successfully.");
+    }
+    catch(Exception e)
+    {
+        System.out.println("Error: " + e.getMessage());
+    }
+}
+
+
+// ---------- VIEW DOCTORS ----------
+static void viewDoctors()
+{
+    String data = readFile("doctors.txt");
+
+    if(data.trim().equals(""))
+    {
+        System.out.println("No doctor data found.");
+        return;
+    }
+
+    System.out.println("\n========== DOCTORS ==========");
+
+    for(String r : data.split("\n"))
+    {
+        if(r.trim().equals(""))
+            continue;
+
+        String[] d = r.split("\\|");
+
+        System.out.println(
+            "Doctor " + d[0] +
+            " | Name: " + d[1] +
+            " | Age: " + d[2] +
+            " | Gender: " + d[3] +
+            " | Specialization: " + d[4] +
+            " | Phone: " + d[5]
+        );
+    }
+}
+
+
+// ---------- SEARCH DOCTOR ----------
+static void searchDoctor()
+{
+    System.out.print("Enter Doctor Number: ");
+    String no = sc.nextLine();
+
+    String[] d = findRecord("doctors.txt", no);
+
+    if(d == null)
+    {
+        System.out.println("Doctor not found.");
+        return;
+    }
+
+    System.out.println("\nDoctor " + d[0]);
+    System.out.println("Name           : " + d[1]);
+    System.out.println("Age            : " + d[2]);
+    System.out.println("Gender         : " + d[3]);
+    System.out.println("Specialization : " + d[4]);
+    System.out.println("Phone          : " + d[5]);
+}
+
+
+// ---------- UPDATE DOCTOR ----------
+static void updateDoctor()
+{
+    System.out.print("Enter Doctor Number: ");
+    String no = sc.nextLine();
+
+    String data = readFile("doctors.txt");
+
+    if(data.trim().equals(""))
+    {
+        System.out.println("Doctor not found.");
+        return;
+    }
+
+    String newData = "";
+    boolean found = false;
+
+    for(String r : data.split("\n"))
+    {
+        if(r.trim().equals(""))
+            continue;
+
+        String[] d = r.split("\\|");
+
+        if(d[0].equals(no))
+        {
+            System.out.print("Enter New Name: ");
+            String name = sc.nextLine();
+
+            System.out.print("Enter New Age: ");
+            String age = sc.nextLine();
+
+            System.out.print("Enter New Gender: ");
+            String gender = sc.nextLine();
+
+            System.out.print("Enter New Specialization: ");
+            String spec = sc.nextLine();
+
+            System.out.print("Enter New Phone: ");
+            String phone = sc.nextLine();
+
+            if(phone.length() != 10)
+            {
+                System.out.println("Enter 10 digit phone number.");
+                return;
+            }
+
+            newData += no + "|" + name + "|" + age + "|" +
+                       gender + "|" + spec + "|" + phone + "\n";
+
+            found = true;
+        }
+        else
+        {
+            newData += r + "\n";
+        }
+    }
+
+    try
+    {
+        writeFile("doctors.txt", newData);
+    }
+    catch(Exception e)
+    {
+        System.out.println("Error: " + e.getMessage());
+        return;
+    }
+
+    System.out.println(
+        found ? "Doctor updated successfully."
+              : "Doctor not found."
+    );
+}
+
+
+// ---------- DELETE DOCTOR ----------
+static void deleteDoctor()
+{
+    System.out.print("Enter Doctor Number: ");
+    String no = sc.nextLine();
+
+    String data = readFile("doctors.txt");
+    String newData = "";
+    boolean found = false;
+
+    for(String r : data.split("\n"))
+    {
+        if(r.trim().equals(""))
+            continue;
+
+        String[] d = r.split("\\|");
+
+        if(d[0].equals(no))
+        {
+            found = true;
+        }
+        else
+        {
+            newData += r + "\n";
+        }
+    }
+
+    try
+    {
+        writeFile("doctors.txt", newData);
+    }
+    catch(Exception e)
+    {
+        System.out.println("Error: " + e.getMessage());
+        return;
+    }
+
+    System.out.println(
+        found ? "Doctor deleted successfully."
+              : "Doctor not found."
+    );
+}
