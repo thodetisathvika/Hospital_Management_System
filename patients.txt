@@ -1,0 +1,400 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.Scanner;
+
+public class HospitalManagementSystem
+{
+    static Scanner sc = new Scanner(System.in);
+
+    // ---------- 8. PATIENT ----------
+    public static void patientModule()
+    {
+        int choice;
+
+        do
+        {
+            System.out.println("\n==============================");
+            System.out.println("       PATIENT MANAGEMENT");
+            System.out.println("==============================");
+            System.out.println("1. Add Patient");
+            System.out.println("2. View Patients");
+            System.out.println("3. Search Patient");
+            System.out.println("4. Update Patient");
+            System.out.println("5. Delete Patient");
+            System.out.println("6. Back");
+
+            System.out.print("Enter Choice: ");
+            choice = Integer.parseInt(sc.nextLine());
+
+            switch(choice)
+            {
+                case 1:
+                    addPatient();
+                    break;
+
+                case 2:
+                    viewPatients();
+                    break;
+
+                case 3:
+                    searchPatient();
+                    break;
+
+                case 4:
+                    updatePatient();
+                    break;
+
+                case 5:
+                    deletePatient();
+                    break;
+
+                case 6:
+                    System.out.println("Returning to Main Menu...");
+                    break;
+
+                default:
+                    System.out.println("Invalid Choice");
+            }
+
+        }
+        while(choice != 6);
+    }
+
+
+    // ---------- ADD PATIENT ----------
+    static void addPatient()
+    {
+        try
+        {
+            int no = nextNumber("patients.txt");
+
+            System.out.println("Patient Number: " + no);
+
+            System.out.print("Enter Patient Name: ");
+            String name = sc.nextLine();
+
+            System.out.print("Enter Age: ");
+            String age = sc.nextLine();
+
+            System.out.print("Enter Gender: ");
+            String gender = sc.nextLine();
+
+            System.out.print("Enter Disease: ");
+            String disease = sc.nextLine();
+
+            System.out.print("Enter Phone: ");
+            String phone = sc.nextLine();
+
+            if(phone.length() != 10)
+            {
+                System.out.println(
+                    "Enter 10 digit mobile number."
+                );
+                return;
+            }
+
+            FileOutputStream fos =
+                    new FileOutputStream("patients.txt", true);
+
+            fos.write(
+                (no + "|" + name + "|" + age + "|" +
+                 gender + "|" + disease + "|" +
+                 phone + "\n").getBytes()
+            );
+
+            fos.close();
+
+            System.out.println("Patient added successfully.");
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+    // ---------- VIEW PATIENTS ----------
+    static void viewPatients()
+    {
+        String data = readFile("patients.txt");
+
+        if(data.trim().equals(""))
+        {
+            System.out.println("No patient data found.");
+            return;
+        }
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] p = r.split("\\|");
+
+            System.out.println(
+                "Patient " + p[0] +
+                " | Name: " + p[1] +
+                " | Age: " + p[2] +
+                " | Gender: " + p[3] +
+                " | Disease: " + p[4] +
+                " | Phone: " + p[5]
+            );
+        }
+    }
+
+
+    // ---------- SEARCH PATIENT ----------
+    static void searchPatient()
+    {
+        System.out.print("Enter Patient Number: ");
+        String no = sc.nextLine();
+
+        String[] p = findRecord("patients.txt", no);
+
+        if(p == null)
+        {
+            System.out.println("Patient not found.");
+            return;
+        }
+
+        System.out.println("\nPatient " + p[0]);
+        System.out.println("Name    : " + p[1]);
+        System.out.println("Age     : " + p[2]);
+        System.out.println("Gender  : " + p[3]);
+        System.out.println("Disease : " + p[4]);
+        System.out.println("Phone   : " + p[5]);
+    }
+
+
+    // ---------- UPDATE PATIENT ----------
+    static void updatePatient()
+    {
+        System.out.print("Enter Patient Number: ");
+        String no = sc.nextLine();
+
+        String data = readFile("patients.txt");
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] p = r.split("\\|");
+
+            if(p[0].equals(no))
+            {
+                System.out.print("Enter New Name: ");
+                String name = sc.nextLine();
+
+                System.out.print("Enter New Age: ");
+                String age = sc.nextLine();
+
+                System.out.print("Enter New Gender: ");
+                String gender = sc.nextLine();
+
+                System.out.print("Enter New Disease: ");
+                String disease = sc.nextLine();
+
+                System.out.print("Enter New Phone: ");
+                String phone = sc.nextLine();
+
+                if(phone.length() != 10)
+                {
+                    System.out.println(
+                        "Enter 10 digit mobile number."
+                    );
+                    return;
+                }
+
+                newData +=
+                    no + "|" + name + "|" + age + "|" +
+                    gender + "|" + disease + "|" +
+                    phone + "\n";
+
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("patients.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        System.out.println(
+            found ?
+            "Patient updated successfully." :
+            "Patient not found."
+        );
+    }
+
+
+    // ---------- DELETE PATIENT ----------
+    static void deletePatient()
+    {
+        System.out.print("Enter Patient Number: ");
+        String no = sc.nextLine();
+
+        String data = readFile("patients.txt");
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] p = r.split("\\|");
+
+            if(p[0].equals(no))
+            {
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("patients.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        System.out.println(
+            found ?
+            "Patient deleted successfully." :
+            "Patient not found."
+        );
+    }
+
+
+    // ---------- READ FILE ----------
+    static String readFile(String fileName)
+    {
+        String data = "";
+
+        try
+        {
+            File file = new File(fileName);
+
+            if(!file.exists())
+                return "";
+
+            FileInputStream fis =
+                    new FileInputStream(file);
+
+            int ch;
+
+            while((ch = fis.read()) != -1)
+            {
+                data += (char) ch;
+            }
+
+            fis.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return data;
+    }
+
+
+    // ---------- WRITE FILE ----------
+    static void writeFile(String fileName, String data)
+    {
+        try
+        {
+            FileOutputStream fos =
+                    new FileOutputStream(fileName);
+
+            fos.write(data.getBytes());
+
+            fos.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+    // ---------- NEXT NUMBER ----------
+    static int nextNumber(String fileName)
+    {
+        String data = readFile(fileName);
+
+        if(data.trim().equals(""))
+            return 1;
+
+        int max = 0;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] p = r.split("\\|");
+
+            try
+            {
+                int n = Integer.parseInt(p[0]);
+
+                if(n > max)
+                    max = n;
+            }
+            catch(Exception e)
+            {
+                // Ignore invalid records
+            }
+        }
+
+        return max + 1;
+    }
+
+
+    // ---------- FIND RECORD ----------
+    static String[] findRecord(
+            String fileName, String number)
+    {
+        String data = readFile(fileName);
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] p = r.split("\\|");
+
+            if(p[0].equals(number))
+                return p;
+        }
+
+        return null;
+    }
+
+
+    // ---------- MAIN ----------
+    public static void main(String[] args)
+    {
+        patientModule();
+    }
+}
