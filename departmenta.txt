@@ -1,0 +1,365 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.Scanner;
+
+public class HospitalManagementSystem
+{
+    static Scanner sc = new Scanner(System.in);
+
+    // ---------- 5. DEPARTMENT ----------
+    public static void departmentModule()
+    {
+        int choice;
+
+        do
+        {
+            System.out.println("\n==============================");
+            System.out.println("     DEPARTMENT MANAGEMENT");
+            System.out.println("==============================");
+            System.out.println("1. Add Department");
+            System.out.println("2. View Departments");
+            System.out.println("3. Search Department");
+            System.out.println("4. Update Department");
+            System.out.println("5. Delete Department");
+            System.out.println("6. Back");
+
+            System.out.print("Enter Choice: ");
+            choice = Integer.parseInt(sc.nextLine());
+
+            switch(choice)
+            {
+                case 1:
+                    addDepartment();
+                    break;
+
+                case 2:
+                    viewDepartments();
+                    break;
+
+                case 3:
+                    searchDepartment();
+                    break;
+
+                case 4:
+                    updateDepartment();
+                    break;
+
+                case 5:
+                    deleteDepartment();
+                    break;
+
+                case 6:
+                    System.out.println("Returning to Main Menu...");
+                    break;
+
+                default:
+                    System.out.println("Invalid Choice");
+            }
+        }
+        while(choice != 6);
+    }
+
+
+    // ---------- ADD DEPARTMENT ----------
+    static void addDepartment()
+    {
+        try
+        {
+            int no = nextNumber("departments.txt");
+
+            System.out.println("Department Number: " + no);
+
+            System.out.print("Enter Department Name: ");
+            String name = sc.nextLine();
+
+            System.out.print("Enter Head Doctor: ");
+            String head = sc.nextLine();
+
+            System.out.print("Enter Location: ");
+            String loc = sc.nextLine();
+
+            FileOutputStream fos =
+                    new FileOutputStream("departments.txt", true);
+
+            fos.write(
+                (no + "|" + name + "|" + head + "|" + loc + "\n")
+                .getBytes()
+            );
+
+            fos.close();
+
+            System.out.println("Department added successfully.");
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+    // ---------- VIEW DEPARTMENTS ----------
+    static void viewDepartments()
+    {
+        String data = readFile("departments.txt");
+
+        if(data.trim().equals(""))
+        {
+            System.out.println("No department data found.");
+            return;
+        }
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] d = r.split("\\|");
+
+            System.out.println(
+                "Department " + d[0] +
+                " | " + d[1] +
+                " | Head: " + d[2] +
+                " | Location: " + d[3]
+            );
+        }
+    }
+
+
+    // ---------- SEARCH DEPARTMENT ----------
+    static void searchDepartment()
+    {
+        System.out.print("Enter Department Number: ");
+        String no = sc.nextLine();
+
+        String[] d = findRecord("departments.txt", no);
+
+        if(d == null)
+        {
+            System.out.println("Department not found.");
+            return;
+        }
+
+        System.out.println(
+            "Department " + d[0] +
+            " | " + d[1] +
+            " | Head: " + d[2] +
+            " | Location: " + d[3]
+        );
+    }
+
+
+    // ---------- UPDATE DEPARTMENT ----------
+    static void updateDepartment()
+    {
+        System.out.print("Enter Department Number: ");
+        String no = sc.nextLine();
+
+        String data = readFile("departments.txt");
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] d = r.split("\\|");
+
+            if(d[0].equals(no))
+            {
+                System.out.print("Enter New Department Name: ");
+                String name = sc.nextLine();
+
+                System.out.print("Enter New Head Doctor: ");
+                String head = sc.nextLine();
+
+                System.out.print("Enter New Location: ");
+                String loc = sc.nextLine();
+
+                newData += no + "|" + name + "|" +
+                           head + "|" + loc + "\n";
+
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("departments.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        System.out.println(
+            found ?
+            "Department updated successfully." :
+            "Department not found."
+        );
+    }
+
+
+    // ---------- DELETE DEPARTMENT ----------
+    static void deleteDepartment()
+    {
+        System.out.print("Enter Department Number: ");
+        String no = sc.nextLine();
+
+        String data = readFile("departments.txt");
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] d = r.split("\\|");
+
+            if(d[0].equals(no))
+            {
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("departments.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        System.out.println(
+            found ?
+            "Department deleted successfully." :
+            "Department not found."
+        );
+    }
+
+
+    // ---------- READ FILE ----------
+    static String readFile(String fileName)
+    {
+        String data = "";
+
+        try
+        {
+            File file = new File(fileName);
+
+            if(!file.exists())
+                return "";
+
+            FileInputStream fis =
+                    new FileInputStream(file);
+
+            int ch;
+
+            while((ch = fis.read()) != -1)
+            {
+                data += (char)ch;
+            }
+
+            fis.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return data;
+    }
+
+
+    // ---------- WRITE FILE ----------
+    static void writeFile(String fileName, String data)
+    {
+        try
+        {
+            FileOutputStream fos =
+                    new FileOutputStream(fileName);
+
+            fos.write(data.getBytes());
+
+            fos.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+    // ---------- NEXT NUMBER ----------
+    static int nextNumber(String fileName)
+    {
+        String data = readFile(fileName);
+
+        if(data.trim().equals(""))
+            return 1;
+
+        int max = 0;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] d = r.split("\\|");
+
+            try
+            {
+                int n = Integer.parseInt(d[0]);
+
+                if(n > max)
+                    max = n;
+            }
+            catch(Exception e)
+            {
+                // Ignore invalid records
+            }
+        }
+
+        return max + 1;
+    }
+
+
+    // ---------- FIND RECORD ----------
+    static String[] findRecord(String fileName, String number)
+    {
+        String data = readFile(fileName);
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] d = r.split("\\|");
+
+            if(d[0].equals(number))
+                return d;
+        }
+
+        return null;
+    }
+
+
+    // ---------- MAIN ----------
+    public static void main(String[] args)
+    {
+        departmentModule();
+    }
+}
