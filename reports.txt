@@ -1,0 +1,406 @@
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.Scanner;
+
+public class ReportModule
+{
+    static Scanner sc = new Scanner(System.in);
+
+    // ---------- READ FILE ----------
+    static String readFile(String file)
+    {
+        String data = "";
+
+        try
+        {
+            FileInputStream fis = new FileInputStream(file);
+
+            int ch;
+
+            while((ch = fis.read()) != -1)
+                data += (char)ch;
+
+            fis.close();
+        }
+        catch(Exception e)
+        {
+            return "";
+        }
+
+        return data;
+    }
+
+    // ---------- WRITE FILE ----------
+    static void writeFile(String file, String data) throws Exception
+    {
+        FileOutputStream fos = new FileOutputStream(file);
+
+        fos.write(data.getBytes());
+
+        fos.close();
+    }
+
+    // ---------- FIND RECORD ----------
+    static String[] findRecord(String file, String number)
+    {
+        String data = readFile(file);
+
+        if(data.trim().equals(""))
+            return null;
+
+        String[] records = data.split("\n");
+
+        for(String record : records)
+        {
+            if(record.trim().equals(""))
+                continue;
+
+            String[] p = record.trim().split("\\|");
+
+            if(p.length > 0 && p[0].equals(number))
+                return p;
+        }
+
+        return null;
+    }
+
+    // ---------- NEXT REPORT NUMBER ----------
+    static int nextNumber(String file)
+    {
+        String data = readFile(file);
+
+        int max = 0;
+
+        if(data.trim().equals(""))
+            return 1;
+
+        String[] records = data.split("\n");
+
+        for(String record : records)
+        {
+            if(record.trim().equals(""))
+                continue;
+
+            String[] p = record.trim().split("\\|");
+
+            try
+            {
+                int n = Integer.parseInt(p[0]);
+
+                if(n > max)
+                    max = n;
+            }
+            catch(Exception e)
+            {
+                // Ignore invalid record
+            }
+        }
+
+        return max + 1;
+    }
+
+    // ---------- REPORT MODULE ----------
+    public static void reportModule()
+    {
+        int choice;
+
+        do
+        {
+            System.out.println("\n==============================");
+            System.out.println("         REPORT MANAGEMENT");
+            System.out.println("==============================");
+            System.out.println("1. Add Report");
+            System.out.println("2. View Reports");
+            System.out.println("3. Search Report");
+            System.out.println("4. Update Report");
+            System.out.println("5. Delete Report");
+            System.out.println("6. Back");
+
+            System.out.print("Enter Choice: ");
+
+            try
+            {
+                choice = Integer.parseInt(sc.nextLine());
+            }
+            catch(Exception e)
+            {
+                System.out.println("Invalid Choice");
+                choice = 0;
+            }
+
+            switch(choice)
+            {
+                case 1:
+                    addReport();
+                    break;
+
+                case 2:
+                    viewReports();
+                    break;
+
+                case 3:
+                    searchReport();
+                    break;
+
+                case 4:
+                    updateReport();
+                    break;
+
+                case 5:
+                    deleteReport();
+                    break;
+
+                case 6:
+                    break;
+
+                default:
+                    System.out.println("Invalid Choice");
+            }
+
+        } while(choice != 6);
+    }
+
+    // ---------- ADD REPORT ----------
+    static void addReport()
+    {
+        try
+        {
+            int no = nextNumber("reports.txt");
+
+            System.out.println("Report Number: " + no);
+
+            System.out.print("Enter Patient Number: ");
+            String pno = sc.nextLine();
+
+            String[] p = findRecord("patients.txt", pno);
+
+            if(p == null)
+            {
+                System.out.println("Patient not found.");
+                return;
+            }
+
+            System.out.print("Enter Doctor Number: ");
+            String dno = sc.nextLine();
+
+            String[] d = findRecord("doctors.txt", dno);
+
+            if(d == null)
+            {
+                System.out.println("Doctor not found.");
+                return;
+            }
+
+            System.out.print("Enter Report Type: ");
+            String type = sc.nextLine();
+
+            FileOutputStream fos =
+                new FileOutputStream("reports.txt", true);
+
+            String record =
+                no + "|" +
+                pno + "|" +
+                p[1] + "|" +
+                dno + "|" +
+                d[1] + "|" +
+                type + "\n";
+
+            fos.write(record.getBytes());
+
+            fos.close();
+
+            System.out.println("Report added successfully.");
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    // ---------- VIEW REPORTS ----------
+    static void viewReports()
+    {
+        String data = readFile("reports.txt");
+
+        if(data.trim().equals(""))
+        {
+            System.out.println("No report data found.");
+            return;
+        }
+
+        System.out.println("\n========== REPORTS ==========");
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] x = r.split("\\|");
+
+            System.out.println(
+                "Report " + x[0] +
+                " | Patient: " + x[2] +
+                " | Doctor: " + x[4] +
+                " | Type: " + x[5]
+            );
+        }
+    }
+
+    // ---------- SEARCH REPORT ----------
+    static void searchReport()
+    {
+        System.out.print("Enter Report Number: ");
+
+        String no = sc.nextLine();
+
+        String[] x = findRecord("reports.txt", no);
+
+        if(x == null)
+        {
+            System.out.println("Report not found.");
+            return;
+        }
+
+        System.out.println("\n========== REPORT DETAILS ==========");
+        System.out.println("Report Number : " + x[0]);
+        System.out.println("Patient Number: " + x[1]);
+        System.out.println("Patient Name  : " + x[2]);
+        System.out.println("Doctor Number : " + x[3]);
+        System.out.println("Doctor Name   : " + x[4]);
+        System.out.println("Report Type   : " + x[5]);
+    }
+
+    // ---------- UPDATE REPORT ----------
+    static void updateReport()
+    {
+        System.out.print("Enter Report Number: ");
+
+        String no = sc.nextLine();
+
+        String data = readFile("reports.txt");
+
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] x = r.split("\\|");
+
+            if(x[0].equals(no))
+            {
+                System.out.print("Enter New Patient Number: ");
+
+                String pno = sc.nextLine();
+
+                String[] p = findRecord("patients.txt", pno);
+
+                if(p == null)
+                {
+                    System.out.println("Patient not found.");
+                    return;
+                }
+
+                System.out.print("Enter New Doctor Number: ");
+
+                String dno = sc.nextLine();
+
+                String[] d = findRecord("doctors.txt", dno);
+
+                if(d == null)
+                {
+                    System.out.println("Doctor not found.");
+                    return;
+                }
+
+                System.out.print("Enter New Report Type: ");
+
+                String type = sc.nextLine();
+
+                newData +=
+                    no + "|" +
+                    pno + "|" +
+                    p[1] + "|" +
+                    dno + "|" +
+                    d[1] + "|" +
+                    type + "\n";
+
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("reports.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+            return;
+        }
+
+        if(found)
+            System.out.println("Report updated successfully.");
+        else
+            System.out.println("Report not found.");
+    }
+
+    // ---------- DELETE REPORT ----------
+    static void deleteReport()
+    {
+        System.out.print("Enter Report Number: ");
+
+        String no = sc.nextLine();
+
+        String data = readFile("reports.txt");
+
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] x = r.split("\\|");
+
+            if(x[0].equals(no))
+            {
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("reports.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+            return;
+        }
+
+        if(found)
+            System.out.println("Report deleted successfully.");
+        else
+            System.out.println("Report not found.");
+    }
+
+    // ---------- MAIN ----------
+    public static void main(String[] args)
+    {
+        reportModule();
+    }
+}
