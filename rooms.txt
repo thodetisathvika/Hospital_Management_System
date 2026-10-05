@@ -1,0 +1,379 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.Scanner;
+
+public class HospitalManagementSystem
+{
+    static Scanner sc = new Scanner(System.in);
+
+    // ---------- 7. ROOM ----------
+    public static void roomModule()
+    {
+        int choice;
+
+        do
+        {
+            System.out.println("\n==============================");
+            System.out.println("         ROOM MANAGEMENT");
+            System.out.println("==============================");
+            System.out.println("1. Add Room");
+            System.out.println("2. View Rooms");
+            System.out.println("3. Search Room");
+            System.out.println("4. Update Room");
+            System.out.println("5. Delete Room");
+            System.out.println("6. Back");
+
+            System.out.print("Enter Choice: ");
+            choice = Integer.parseInt(sc.nextLine());
+
+            switch(choice)
+            {
+                case 1:
+                    addRoom();
+                    break;
+
+                case 2:
+                    viewRooms();
+                    break;
+
+                case 3:
+                    searchRoom();
+                    break;
+
+                case 4:
+                    updateRoom();
+                    break;
+
+                case 5:
+                    deleteRoom();
+                    break;
+
+                case 6:
+                    System.out.println("Returning to Main Menu...");
+                    break;
+
+                default:
+                    System.out.println("Invalid Choice");
+            }
+
+        }
+        while(choice != 6);
+    }
+
+
+    // ---------- ADD ROOM ----------
+    static void addRoom()
+    {
+        try
+        {
+            int no = nextNumber("rooms.txt");
+
+            System.out.println("Room Number: " + no);
+
+            System.out.print("Enter Room Type: ");
+            String type = sc.nextLine();
+
+            double charge =
+                    readAmount("Enter Room Charge: ");
+
+            FileOutputStream fos =
+                    new FileOutputStream("rooms.txt", true);
+
+            fos.write(
+                (no + "|" + type + "|" + charge + "\n")
+                .getBytes()
+            );
+
+            fos.close();
+
+            System.out.println("Room added successfully.");
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+    // ---------- VIEW ROOMS ----------
+    static void viewRooms()
+    {
+        String data = readFile("rooms.txt");
+
+        if(data.trim().equals(""))
+        {
+            System.out.println("No room data found.");
+            return;
+        }
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] x = r.split("\\|");
+
+            System.out.println(
+                "Room " + x[0] +
+                " | Type: " + x[1] +
+                " | Charge: " + x[2]
+            );
+        }
+    }
+
+
+    // ---------- SEARCH ROOM ----------
+    static void searchRoom()
+    {
+        System.out.print("Enter Room Number: ");
+        String no = sc.nextLine();
+
+        String[] x = findRecord("rooms.txt", no);
+
+        if(x == null)
+        {
+            System.out.println("Room not found.");
+            return;
+        }
+
+        System.out.println(
+            "Room " + x[0] +
+            " | Type: " + x[1] +
+            " | Charge: " + x[2]
+        );
+    }
+
+
+    // ---------- UPDATE ROOM ----------
+    static void updateRoom()
+    {
+        System.out.print("Enter Room Number: ");
+        String no = sc.nextLine();
+
+        String data = readFile("rooms.txt");
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] x = r.split("\\|");
+
+            if(x[0].equals(no))
+            {
+                System.out.print("Enter New Room Type: ");
+                String type = sc.nextLine();
+
+                double charge =
+                        readAmount("Enter New Room Charge: ");
+
+                newData +=
+                        no + "|" + type + "|" +
+                        charge + "\n";
+
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("rooms.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        System.out.println(
+            found ?
+            "Room updated successfully." :
+            "Room not found."
+        );
+    }
+
+
+    // ---------- DELETE ROOM ----------
+    static void deleteRoom()
+    {
+        System.out.print("Enter Room Number: ");
+        String no = sc.nextLine();
+
+        String data = readFile("rooms.txt");
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] x = r.split("\\|");
+
+            if(x[0].equals(no))
+            {
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("rooms.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        System.out.println(
+            found ?
+            "Room deleted successfully." :
+            "Room not found."
+        );
+    }
+
+
+    // ---------- READ AMOUNT ----------
+    static double readAmount(String message)
+    {
+        while(true)
+        {
+            try
+            {
+                System.out.print(message);
+                return Double.parseDouble(sc.nextLine());
+            }
+            catch(Exception e)
+            {
+                System.out.println(
+                    "Invalid amount. Please enter a number."
+                );
+            }
+        }
+    }
+
+
+    // ---------- READ FILE ----------
+    static String readFile(String fileName)
+    {
+        String data = "";
+
+        try
+        {
+            File file = new File(fileName);
+
+            if(!file.exists())
+                return "";
+
+            FileInputStream fis =
+                    new FileInputStream(file);
+
+            int ch;
+
+            while((ch = fis.read()) != -1)
+            {
+                data += (char) ch;
+            }
+
+            fis.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return data;
+    }
+
+
+    // ---------- WRITE FILE ----------
+    static void writeFile(String fileName, String data)
+    {
+        try
+        {
+            FileOutputStream fos =
+                    new FileOutputStream(fileName);
+
+            fos.write(data.getBytes());
+
+            fos.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+    // ---------- NEXT NUMBER ----------
+    static int nextNumber(String fileName)
+    {
+        String data = readFile(fileName);
+
+        if(data.trim().equals(""))
+            return 1;
+
+        int max = 0;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] x = r.split("\\|");
+
+            try
+            {
+                int n = Integer.parseInt(x[0]);
+
+                if(n > max)
+                    max = n;
+            }
+            catch(Exception e)
+            {
+                // Ignore invalid records
+            }
+        }
+
+        return max + 1;
+    }
+
+
+    // ---------- FIND RECORD ----------
+    static String[] findRecord(String fileName, String number)
+    {
+        String data = readFile(fileName);
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] x = r.split("\\|");
+
+            if(x[0].equals(number))
+                return x;
+        }
+
+        return null;
+    }
+
+
+    // ---------- MAIN ----------
+    public static void main(String[] args)
+    {
+        roomModule();
+    }
+}
