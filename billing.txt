@@ -1,0 +1,765 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.Scanner;
+
+public class Hospital_Management_System
+{
+    static Scanner sc = new Scanner(System.in);
+
+    // ---------- 10. BILLING ----------
+    public static void billingModule()
+    {
+        int choice;
+
+        do
+        {
+            System.out.println("\n==============================");
+            System.out.println("         BILLING MANAGEMENT");
+            System.out.println("==============================");
+            System.out.println("1. Generate Bill");
+            System.out.println("2. View Bills");
+            System.out.println("3. Search Bill");
+            System.out.println("4. Update Bill");
+            System.out.println("5. Delete Bill");
+            System.out.println("6. Back");
+
+            System.out.print("Enter Choice: ");
+            choice = Integer.parseInt(sc.nextLine());
+
+            switch(choice)
+            {
+                case 1:
+                    addBill();
+                    break;
+
+                case 2:
+                    viewBills();
+                    break;
+
+                case 3:
+                    searchBill();
+                    break;
+
+                case 4:
+                    updateBill();
+                    break;
+
+                case 5:
+                    deleteBill();
+                    break;
+
+                case 6:
+                    System.out.println("Returning to Main Menu...");
+                    break;
+
+                default:
+                    System.out.println("Invalid Choice");
+            }
+
+        }
+        while(choice != 6);
+    }
+
+
+    // ---------- GENERATE BILL ----------
+    static void addBill()
+    {
+        try
+        {
+            int no = nextNumber("billing.txt");
+
+            System.out.println("Bill Number: " + no);
+
+            System.out.print("Enter Patient Number: ");
+            String pno = sc.nextLine();
+
+            String[] p = findRecord("patients.txt", pno);
+
+            if(p == null)
+            {
+                System.out.println("Patient not found.");
+                return;
+            }
+
+            System.out.print("Enter Doctor Number: ");
+            String dno = sc.nextLine();
+
+            String[] d = findRecord("doctors.txt", dno);
+
+            if(d == null)
+            {
+                System.out.println("Doctor not found.");
+                return;
+            }
+
+            System.out.print("Enter Room Number: ");
+            String rno = sc.nextLine();
+
+            String[] room = findRecord("rooms.txt", rno);
+
+            if(room == null)
+            {
+                System.out.println("Room not found.");
+                return;
+            }
+
+            System.out.print("Enter Appointment Number: ");
+            String ano = sc.nextLine();
+
+            String[] a = findRecord("appointments.txt", ano);
+
+            if(a == null)
+            {
+                System.out.println("Appointment not found.");
+                return;
+            }
+
+            double consultation =
+                    readAmount("Enter Consultation Charge: ");
+
+            double roomCharge =
+                    readAmount("Enter Room Charge: ");
+
+            double medicine =
+                    readAmount("Enter Medicine Charge: ");
+
+            double lab =
+                    readAmount("Enter Lab/Test Charge: ");
+
+            double nursing =
+                    readAmount("Enter Nursing Charge: ");
+
+            double discharge =
+                    readAmount("Enter Discharge Charge: ");
+
+            double other =
+                    readAmount("Enter Other Charges: ");
+
+            double total =
+                    consultation +
+                    roomCharge +
+                    medicine +
+                    lab +
+                    nursing +
+                    discharge +
+                    other;
+
+            double paid =
+                    readAmount("Enter Amount Paid: ");
+
+            double balance = total - paid;
+
+            FileOutputStream fos =
+                    new FileOutputStream("billing.txt", true);
+
+            String record =
+                    no + "|" +
+                    p[1] + "|" +
+                    p[4] + "|" +
+                    d[1] + "|" +
+                    room[1] + "|" +
+                    a[5] + "|" +
+                    a[6] + "|" +
+                    consultation + "|" +
+                    roomCharge + "|" +
+                    medicine + "|" +
+                    lab + "|" +
+                    nursing + "|" +
+                    discharge + "|" +
+                    other + "|" +
+                    total + "|" +
+                    paid + "|" +
+                    balance + "\n";
+
+            fos.write(record.getBytes());
+            fos.close();
+
+            printBill(
+                String.valueOf(no),
+                p[1],
+                p[4],
+                d[1],
+                a[5],
+                a[6],
+                consultation,
+                roomCharge,
+                medicine,
+                lab,
+                nursing,
+                discharge,
+                other,
+                total,
+                paid,
+                balance
+            );
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+    // ---------- PRINT BILL ----------
+    static void printBill(
+            String no,
+            String patient,
+            String disease,
+            String doctor,
+            String date,
+            String time,
+            double consultation,
+            double room,
+            double medicine,
+            double lab,
+            double nursing,
+            double discharge,
+            double other,
+            double total,
+            double paid,
+            double balance)
+    {
+        System.out.println("\n============================================");
+        System.out.println("              APOLLO HOSPITALS");
+        System.out.println("                 BILL RECEIPT");
+        System.out.println("============================================");
+
+        System.out.println("Bill Number       : " + no);
+        System.out.println("Patient Name      : " + patient);
+        System.out.println("Disease           : " + disease);
+        System.out.println("Doctor Name       : " + doctor);
+        System.out.println("Appointment Date  : " + date);
+        System.out.println("Appointment Time  : " + time);
+
+        System.out.println("--------------------------------------------");
+        System.out.println("                BILL DETAILS");
+        System.out.println("--------------------------------------------");
+
+        System.out.printf(
+            "Consultation Charge       : %.2f%n",
+            consultation
+        );
+
+        System.out.printf(
+            "Room Charge               : %.2f%n",
+            room
+        );
+
+        System.out.printf(
+            "Medicine Charge           : %.2f%n",
+            medicine
+        );
+
+        System.out.printf(
+            "Lab/Test Charge           : %.2f%n",
+            lab
+        );
+
+        System.out.printf(
+            "Nursing Charge            : %.2f%n",
+            nursing
+        );
+
+        System.out.printf(
+            "Discharge Charge          : %.2f%n",
+            discharge
+        );
+
+        System.out.printf(
+            "Other Charges             : %.2f%n",
+            other
+        );
+
+        System.out.println("--------------------------------------------");
+
+        System.out.printf(
+            "TOTAL AMOUNT              : %.2f%n",
+            total
+        );
+
+        System.out.printf(
+            "AMOUNT PAID               : %.2f%n",
+            paid
+        );
+
+        if(balance > 0)
+        {
+            System.out.printf(
+                "BALANCE AMOUNT            : %.2f%n",
+                balance
+            );
+        }
+        else if(balance == 0)
+        {
+            System.out.println(
+                "BALANCE AMOUNT            : 0.00"
+            );
+
+            System.out.println(
+                "Payment Status            : PAID"
+            );
+        }
+        else
+        {
+            System.out.printf(
+                "EXCESS AMOUNT             : %.2f%n",
+                Math.abs(balance)
+            );
+        }
+
+        System.out.println("--------------------------------------------");
+        System.out.println("                 THANK YOU!");
+        System.out.println("============================================");
+    }
+
+
+    // ---------- VIEW BILLS ----------
+    static void viewBills()
+    {
+        String data = readFile("billing.txt");
+
+        if(data.trim().equals(""))
+        {
+            System.out.println("No billing data found.");
+            return;
+        }
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] b = r.split("\\|");
+
+            System.out.println("\nBill " + b[0]);
+            System.out.println("Patient: " + b[1]);
+            System.out.println("Disease: " + b[2]);
+            System.out.println("Doctor : " + b[3]);
+            System.out.println("Date   : " + b[5]);
+            System.out.println("Time   : " + b[6]);
+
+            System.out.printf(
+                "Total  : %.2f%n",
+                Double.parseDouble(b[14])
+            );
+
+            System.out.printf(
+                "Paid   : %.2f%n",
+                Double.parseDouble(b[15])
+            );
+
+            System.out.printf(
+                "Balance: %.2f%n",
+                Double.parseDouble(b[16])
+            );
+        }
+    }
+
+
+    // ---------- SEARCH BILL ----------
+    static void searchBill()
+    {
+        System.out.print("Enter Bill Number: ");
+        String no = sc.nextLine();
+
+        String[] b = findRecord("billing.txt", no);
+
+        if(b == null)
+        {
+            System.out.println("Bill not found.");
+            return;
+        }
+
+        printBill(
+            b[0],
+            b[1],
+            b[2],
+            b[3],
+            b[5],
+            b[6],
+            Double.parseDouble(b[7]),
+            Double.parseDouble(b[8]),
+            Double.parseDouble(b[9]),
+            Double.parseDouble(b[10]),
+            Double.parseDouble(b[11]),
+            Double.parseDouble(b[12]),
+            Double.parseDouble(b[13]),
+            Double.parseDouble(b[14]),
+            Double.parseDouble(b[15]),
+            Double.parseDouble(b[16])
+        );
+    }
+
+
+    // ---------- UPDATE BILL ----------
+    static void updateBill()
+    {
+        System.out.print("Enter Bill Number: ");
+        String no = sc.nextLine();
+
+        String data = readFile("billing.txt");
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] b = r.split("\\|");
+
+            if(b[0].equals(no))
+            {
+                System.out.print("Enter New Patient Number: ");
+                String pno = sc.nextLine();
+
+                String[] p = findRecord("patients.txt", pno);
+
+                if(p == null)
+                {
+                    System.out.println("Patient not found.");
+                    return;
+                }
+
+                System.out.print("Enter New Doctor Number: ");
+                String dno = sc.nextLine();
+
+                String[] d = findRecord("doctors.txt", dno);
+
+                if(d == null)
+                {
+                    System.out.println("Doctor not found.");
+                    return;
+                }
+
+                System.out.print("Enter New Room Number: ");
+                String rno = sc.nextLine();
+
+                String[] room = findRecord("rooms.txt", rno);
+
+                if(room == null)
+                {
+                    System.out.println("Room not found.");
+                    return;
+                }
+
+                System.out.print(
+                    "Enter New Appointment Number: "
+                );
+
+                String ano = sc.nextLine();
+
+                String[] a =
+                        findRecord("appointments.txt", ano);
+
+                if(a == null)
+                {
+                    System.out.println(
+                        "Appointment not found."
+                    );
+                    return;
+                }
+
+                double consultation =
+                    readAmount(
+                        "Enter New Consultation Charge: "
+                    );
+
+                double roomCharge =
+                    readAmount(
+                        "Enter New Room Charge: "
+                    );
+
+                double medicine =
+                    readAmount(
+                        "Enter New Medicine Charge: "
+                    );
+
+                double lab =
+                    readAmount(
+                        "Enter New Lab/Test Charge: "
+                    );
+
+                double nursing =
+                    readAmount(
+                        "Enter New Nursing Charge: "
+                    );
+
+                double discharge =
+                    readAmount(
+                        "Enter New Discharge Charge: "
+                    );
+
+                double other =
+                    readAmount(
+                        "Enter New Other Charges: "
+                    );
+
+                double total =
+                    consultation +
+                    roomCharge +
+                    medicine +
+                    lab +
+                    nursing +
+                    discharge +
+                    other;
+
+                double paid =
+                    readAmount(
+                        "Enter New Amount Paid: "
+                    );
+
+                double balance = total - paid;
+
+                newData +=
+                    no + "|" +
+                    p[1] + "|" +
+                    p[4] + "|" +
+                    d[1] + "|" +
+                    room[1] + "|" +
+                    a[5] + "|" +
+                    a[6] + "|" +
+                    consultation + "|" +
+                    roomCharge + "|" +
+                    medicine + "|" +
+                    lab + "|" +
+                    nursing + "|" +
+                    discharge + "|" +
+                    other + "|" +
+                    total + "|" +
+                    paid + "|" +
+                    balance + "\n";
+
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("billing.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println(
+                "Error: " + e.getMessage()
+            );
+            return;
+        }
+
+        System.out.println(
+            found ?
+            "Bill updated successfully." :
+            "Bill not found."
+        );
+    }
+
+
+    // ---------- DELETE BILL ----------
+    static void deleteBill()
+    {
+        System.out.print("Enter Bill Number: ");
+        String no = sc.nextLine();
+
+        String data = readFile("billing.txt");
+        String newData = "";
+
+        boolean found = false;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] b = r.split("\\|");
+
+            if(b[0].equals(no))
+            {
+                found = true;
+            }
+            else
+            {
+                newData += r + "\n";
+            }
+        }
+
+        try
+        {
+            writeFile("billing.txt", newData);
+        }
+        catch(Exception e)
+        {
+            System.out.println(
+                "Error: " + e.getMessage()
+            );
+            return;
+        }
+
+        System.out.println(
+            found ?
+            "Bill deleted successfully." :
+            "Bill not found."
+        );
+    }
+
+
+    // ---------- READ AMOUNT ----------
+    static double readAmount(String message)
+    {
+        while(true)
+        {
+            try
+            {
+                System.out.print(message);
+
+                double amount =
+                    Double.parseDouble(sc.nextLine());
+
+                if(amount < 0)
+                {
+                    System.out.println(
+                        "Amount cannot be negative."
+                    );
+                    continue;
+                }
+
+                return amount;
+            }
+            catch(Exception e)
+            {
+                System.out.println(
+                    "Invalid amount. Enter a number."
+                );
+            }
+        }
+    }
+
+
+    // ---------- READ FILE ----------
+    static String readFile(String fileName)
+    {
+        String data = "";
+
+        try
+        {
+            File file = new File(fileName);
+
+            if(!file.exists())
+                return "";
+
+            FileInputStream fis =
+                new FileInputStream(file);
+
+            int ch;
+
+            while((ch = fis.read()) != -1)
+            {
+                data += (char)ch;
+            }
+
+            fis.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println(
+                "Error: " + e.getMessage()
+            );
+        }
+
+        return data;
+    }
+
+
+    // ---------- WRITE FILE ----------
+    static void writeFile(
+            String fileName,
+            String data)
+    {
+        try
+        {
+            FileOutputStream fos =
+                new FileOutputStream(fileName);
+
+            fos.write(data.getBytes());
+
+            fos.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println(
+                "Error: " + e.getMessage()
+            );
+        }
+    }
+
+
+    // ---------- NEXT NUMBER ----------
+    static int nextNumber(String fileName)
+    {
+        String data = readFile(fileName);
+
+        if(data.trim().equals(""))
+            return 1;
+
+        int max = 0;
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] b = r.split("\\|");
+
+            try
+            {
+                int n = Integer.parseInt(b[0]);
+
+                if(n > max)
+                    max = n;
+            }
+            catch(Exception e)
+            {
+                // Ignore invalid records
+            }
+        }
+
+        return max + 1;
+    }
+
+
+    // ---------- FIND RECORD ----------
+    static String[] findRecord(
+            String fileName,
+            String number)
+    {
+        String data = readFile(fileName);
+
+        for(String r : data.split("\n"))
+        {
+            if(r.trim().equals(""))
+                continue;
+
+            String[] b = r.split("\\|");
+
+            if(b[0].equals(number))
+                return b;
+        }
+
+        return null;
+    }
+
+
+    // ---------- MAIN ----------
+    public static void main(String[] args)
+    {
+        Hospital_Management_System h =
+                new Hospital_Management_System();
+
+        h.login();
+    }
+}
